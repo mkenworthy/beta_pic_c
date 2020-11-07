@@ -153,14 +153,14 @@ def kep3d(epoch:u.year, P:u.year, tperi:u.year, a, e, inc:u.deg, omega:u.deg, an
         anode (float): PA of the ascending node (u.angle)
 
     Returns:
-       X,Y, Xs,Ys,Zs, Xsv,Ysv,Zsv
+       Xorb,Yorb, Xs,Ys,Zs, Xsv,Ysv,Zsv
 
     Output frame has X,Y in computer plotting coordinates
     i.e. X is to the right, increasing (due West)
 
     Primary body is fixed at the origin.
 
-    X,Y (float): 2D coordinates of in plane orbit with periapse
+    Xorb,Yorb (float): 2D coordinates of in plane orbit with periapse
                  towards the +ve X axis.
 
     Xs,Ys,Zs (float): The 3D coordinates of the secondary body
@@ -234,8 +234,8 @@ def kep3d(epoch:u.year, P:u.year, tperi:u.year, a, e, inc:u.deg, omega:u.deg, an
     sE = np.sin(E)
     surde = np.sqrt(1 - (e*e))
 
-    X  = a * (cE - e)
-    Y  = a * surde * sE
+    Xorb  = a * (cE - e)
+    Yorb  = a * surde * sE
 
     Xv = -(a * n * sE) / (1 - e * cE)
     Yv =  (a * n * surde * cE) / (1 - e * cE)
@@ -253,14 +253,12 @@ def kep3d(epoch:u.year, P:u.year, tperi:u.year, a, e, inc:u.deg, omega:u.deg, an
     # problem with building the np.array below and putting the Quantity through
     # the np.dot() routine
 
-    (Xe, Ye, Ze)    = np.dot(mat, np.array([X.value,Y.value,np.zeros(X.shape)]))
-    #blog = np.array([X,Y,np.zeros(X.size)]) * X.unit
-    #(Xe, Ye, Ze)    = np.dot(mat, blog)
-    (Xev, Yev, Zev) = np.dot(mat, np.array([Xv.value,Yv.value,np.zeros(Xv.shape)]))
-
-    Xs = -Ye * X.unit
-    Ys =  Xe * X.unit
-    Zs =  Ze * X.unit
+    (Xe, Ye, Ze)    = mat.dot(np.array([Xorb.value,Yorb.value,np.zeros(Xorb.shape)]))
+    (Xev, Yev, Zev) = mat.dot(np.array([Xv.value,Yv.value,np.zeros(Xv.shape)]))
+    
+    Xs = -Ye * Xorb.unit
+    Ys =  Xe * Xorb.unit
+    Zs =  Ze * Xorb.unit
     Xsv = -Yev * Xv.unit
     Ysv =  Xev * Xv.unit
     Zsv =  Zev * Xv.unit
@@ -271,7 +269,7 @@ def kep3d(epoch:u.year, P:u.year, tperi:u.year, a, e, inc:u.deg, omega:u.deg, an
     # we have
     #   X,Y,Z,Xdot,Ydot,Zdot = -Ys, Xs, Zs, -Yv, Xv, Zv
 
-    return(X,Y,Xs,Ys,Zs,Xsv,Ysv,Zsv)
+    return (Xorb,Yorb,Xs,Ys,Zs,Xsv,Ysv,Zsv)
 
 
 @u.quantity_input
